@@ -1,0 +1,87 @@
+Option Explicit
+
+Sub シートのコピー()
+    Dim wbSource As Workbook
+    Dim wbTarget As Workbook
+    Dim sourcePath As String
+    
+    ' ひな形.xlsxのパスを指定
+    sourcePath = "C:\Users\user\Desktop\小山_練習用\VBAアプリ_1\ひな形.xlsx"
+    
+    ' アクティブブックをターゲットに設定
+    Set wbTarget = ThisWorkbook
+    
+    ' ひな形.xlsxを開く
+    Set wbSource = Workbooks.Open(sourcePath)
+    
+    ' ひな形.xlsxの「日報集計シート」をアクティブブックの先頭シートの前にコピー
+    wbSource.Sheets("日報集計シート").Copy Before:=wbTarget.Sheets(1)
+    
+    ' ひな形.xlsxを閉じる（保存はしない）
+    wbSource.Close SaveChanges:=False
+    
+    ' オブジェクト変数の解放
+    Set wbSource = Nothing
+    Set wbTarget = Nothing
+End Sub
+
+
+
+Sub SetMinMaxDateToC2InReportSheet()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim minDate As Date
+    Dim maxDate As Date
+    Dim dateRange As Range
+    Dim result As String
+
+    ' 「日報集計シート」シートを設定
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("日報集計シート")
+    On Error GoTo 0
+
+    ' 「日報集計シート」が存在しない場合は終了
+    If ws Is Nothing Then
+        MsgBox "「日報集計シート」が見つかりません。"
+        Exit Sub
+    End If
+
+    ' I列の最終行を取得
+    lastRow = ws.Cells(ws.Rows.Count, "I").End(xlUp).Row
+
+    ' I列の2行目から最終行までの範囲を設定
+    Set dateRange = ws.Range("I2:I" & lastRow)
+
+    ' 開始日時の最大値と最小値を取得
+    minDate = Application.WorksheetFunction.Min(dateRange)
+    maxDate = Application.WorksheetFunction.Max(dateRange)
+
+    ' 結果を YYYY/MM/DD～YYYY/MM/DD の形式にフォーマット
+    result = Format(minDate, "yyyy/mm/dd") & "～" & Format(maxDate, "yyyy/mm/dd")
+
+    ' 「日報集計シート」のC2セルに結果を入力
+    ws.Range("C2").Value = result
+End Sub
+
+Sub 休憩時間の削除()
+
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+
+    ' 対象のシートを設定（例：アクティブなシート）
+    Set ws = ActiveSheet
+
+    ' F列の最終行を取得
+    lastRow = ws.Cells(ws.Rows.Count, "F").End(xlUp).Row
+
+    ' F列を下から上にループして「休憩時間」と一致する行を削除
+    For i = lastRow To 2 Step -1
+        If ws.Cells(i, "F").Value = "休憩時間" Then
+            ws.Rows(i).Delete
+        End If
+    Next i
+End Sub
+    
+
+
